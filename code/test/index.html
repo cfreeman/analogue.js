@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="http://fonts.googleapis.com/css?family=Roboto+Slab:700|Open+Sans:300italic,400,300,600,600italic" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<p style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.</p>
+
+<canvas id="myCanvas" width="1000" height="150">Your browser does not support the HTML5 canvas tag.</canvas>
+
+<script>
+var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
+
+function rand(s, e) {
+	return Math.floor((Math.random() * e) + s) | 0;
+}
+
+function chance(p) {
+	if (rand(0, 100) >= (100 - p)) {
+		return true;
+	}
+
+	return false;
+}
+
+function generateInkStrike(ctx, s, w, h) {
+	var hLower = (h * 0.7 | 0);
+	var hUpper = h;
+
+	var wLower = s;
+	var wUpper = w;
+
+	var hGradient = rand(hLower, hUpper);
+	var wGradient = rand(wLower, wUpper);
+
+	// console.log("hLower: " + hLower);
+	// console.log("hUpper: " + hUpper);
+	// console.log("wLower: " + wLower);
+	// console.log("wUpper: " + wUpper);
+	// console.log("hGradient " + hGradient);
+	// console.log("wGradient " + wGradient);
+
+	var res = ctx.createLinearGradient(s, 0, wGradient, hGradient);
+	res.addColorStop(0,"black");
+	res.addColorStop(1,"rgb(190,190,190)");
+	return res;
+}
+
+function typeCharacter(ctx, c, s, h) {
+	var w = ctx.measureText(c).width | 0;
+
+	// render smudges / deepened bleed for characters with enclosing strokes.
+	if (smudge.indexOf(c.toLowerCase()) != -1 && chance(10)) {
+		// console.log("s: " + s);
+		// console.log("h: " + h);
+		// console.log("width: " + w);
+		// console.log("height: " + h);
+
+		var grd=ctx.createRadialGradient(s+rand(w/3,w/2), 8,1, s+rand(w/3,w/2),8, w/2+1);
+		var g = rand(120, 220);
+		grd.addColorStop(0,"rgb("+g+","+g+","+g+")");
+		grd.addColorStop(1,"white");
+		ctx.fillStyle=grd;
+		ctx.fillRect(s, 0, w, 19); 
+	}
+
+	ctx.fillStyle=generateInkStrike(ctx, s, w, h);// approximate type bar strike.
+	ctx.fillText(c, s, w+2+rand(0,2));			  // render foundation character.
+	ctx.fillText(c, s+rand(0, 1), w+2+rand(0,2)); // bleed character onto the page.
+
+	return w;
+}
+
+// TODO: typeword.
+// TODO: grab content from existing paragraph.
+// TODO: generate canvas based on the size of the existing paragraph.
+// TODO: estimote font size based on style used in existing paragraph.
+// TODO: wordwrap / typeset based on content from existing paragraph.
+
+// RENDERING:
+// TODO: Figure out typos and randomly type them.
+// TODO: Render random whiteout blocks behind some sections of the text.
+
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+
+ctx.font = "19px \"Courier New\",monospace";
+
+var content = "Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.";
+
+var p = 0;
+for(var i = 0, len = content.length; i < len; i++) {
+	p = p + typeCharacter(ctx, content[i], p, 19);
+}
+
+</script>
+
+</body>
+</html>
