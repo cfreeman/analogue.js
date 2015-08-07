@@ -5,11 +5,21 @@
 </head>
 <body>
 
-<p style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.</p>
+<div>
+<p class="analogue">Dear Clinton,</p>
 
-<canvas id="myCanvas" width="1000" height="150">Your browser does not support the HTML5 canvas tag.</canvas>
+<p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.</p>
+
+<p class="analogue">Servidor de usted,</p>
+
+<p>some dummy untyped content</p>
+</div>
+
+<!--
+<canvas id="myCanvas" width="1000" height="150">Your browser does not support the HTML5 canvas tag.</canvas> -->
 
 <script>
+
 var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
 
 function rand(s, e) {
@@ -47,7 +57,7 @@ function generateInkStrike(ctx, s, w, h) {
 	return res;
 }
 
-function typeCharacter(ctx, c, s, h) {
+function typeCharacter(ctx, c, nc, s, h) {
 	var w = ctx.measureText(c).width | 0;
 
 	// render smudges / deepened bleed for characters with enclosing strokes.
@@ -63,6 +73,12 @@ function typeCharacter(ctx, c, s, h) {
 		grd.addColorStop(1,"white");
 		ctx.fillStyle=grd;
 		ctx.fillRect(s, 0, w, 19); 
+	}	
+
+	// render transposition typographical errors. 
+	if (c != " " && nc && chance(2)) {
+		ctx.fillStyle=generateInkStrike(ctx, s, w, h);// approximate type bar strike.
+		ctx.fillText(nc, s, w+2+rand(0,2));
 	}
 
 	ctx.fillStyle=generateInkStrike(ctx, s, w, h);// approximate type bar strike.
@@ -72,28 +88,44 @@ function typeCharacter(ctx, c, s, h) {
 	return w;
 }
 
-// TODO: typeword.
-// TODO: grab content from existing paragraph.
-// TODO: generate canvas based on the size of the existing paragraph.
-// TODO: estimote font size based on style used in existing paragraph.
-// TODO: wordwrap / typeset based on content from existing paragraph.
+function typeParagraph(eExisting) {
+	// Create canvas element that we will use to re-render the content off the existing element.
+	var eCanvas = document.createElement("canvas");
 
-// RENDERING:
-// TODO: Figure out typos and randomly type them.
-// TODO: Render random whiteout blocks behind some sections of the text.
+	// Model the width and the height of the canvas off the existing element.
+	eCanvas.setAttribute("width", eExisting.offsetWidth);
+	eCanvas.setAttribute("height", eExisting.offsetHeight);
+	eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
 
-var c = document.getElementById("myCanvas");
-var ctx = c.getContext("2d");
+	// Model the size of the type off the existing element.
+	var fSize = parseFloat(window.getComputedStyle(eExisting, null).getPropertyValue('font-size'));
 
-ctx.font = "19px \"Courier New\",monospace";
+	// Configure our canvas rendering context.
+	var ctx = eCanvas.getContext("2d");
+	ctx.font = fSize + "px \"Courier New\",monospace";
 
-var content = "Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.";
+	// Start pecking away at our virtual typewritter.
+	var p = 0;
+	for(var i = 0, len = eExisting.innerHTML.length; i < len; i++) {
+		p = p + typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1], p, fSize);
+	}
 
-var p = 0;
-for(var i = 0, len = content.length; i < len; i++) {
-	p = p + typeCharacter(ctx, content[i], p, 19);
+	eExisting.parentNode.insertBefore(eCanvas, eExisting);
+	eExisting.style.display = 'none'; // Hide the original content. The canvas has replaced it.
 }
 
+// TODO: generate canvas based on the size of the existing paragraph.
+// TODO: wordwrap / typeset based on content from existing paragraph.
+// TODO: multi-line paragraphs.
+
+// RENDERING:
+// TODO: Render random correction tape behind some sections of the text.
+// TODO: The ability to set foreground and background colours.
+
+aTypingList = document.querySelectorAll(".analogue");
+for (var i = 0, len = aTypingList.length; i < len; i++) {
+	typeParagraph(aTypingList[i])
+}
 </script>
 
 </body>
