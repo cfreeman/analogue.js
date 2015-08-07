@@ -5,20 +5,46 @@
 </head>
 <body>
 
-<div>
+
 <p class="analogue">Dear Clinton,</p>
 
-<p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.</p>
+<p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
 
 <p class="analogue">Servidor de usted,</p>
 
-<p>some dummy untyped content</p>
-</div>
+<h2 >--van</h2>
 
-<!--
-<canvas id="myCanvas" width="1000" height="150">Your browser does not support the HTML5 canvas tag.</canvas> -->
+<p>some dummy untyped content</p>
+
 
 <script>
+/**
+ * Copyright (c) Clinton Freeman 2015
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+// TODO: generate canvas based on the size of the existing paragraph.
+// TODO: multi-line paragraphs.
+// TODO: when positioning canvases, respect margins / borders and padding.
+
+// RENDERING:
+// TODO: Render random correction tape behind some sections of the text.
+// TODO: The ability to set foreground and background colours.
+// TODO: Make typo ink strike a bit softer than accurate strikes.
 
 var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
 
@@ -95,7 +121,7 @@ function typeParagraph(eExisting) {
 	// Model the width and the height of the canvas off the existing element.
 	eCanvas.setAttribute("width", eExisting.offsetWidth);
 	eCanvas.setAttribute("height", eExisting.offsetHeight);
-	eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
+	//eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
 
 	// Model the size of the type off the existing element.
 	var fSize = parseFloat(window.getComputedStyle(eExisting, null).getPropertyValue('font-size'));
@@ -113,14 +139,6 @@ function typeParagraph(eExisting) {
 	eExisting.parentNode.insertBefore(eCanvas, eExisting);
 	eExisting.style.display = 'none'; // Hide the original content. The canvas has replaced it.
 }
-
-// TODO: generate canvas based on the size of the existing paragraph.
-// TODO: wordwrap / typeset based on content from existing paragraph.
-// TODO: multi-line paragraphs.
-
-// RENDERING:
-// TODO: Render random correction tape behind some sections of the text.
-// TODO: The ability to set foreground and background colours.
 
 aTypingList = document.querySelectorAll(".analogue");
 for (var i = 0, len = aTypingList.length; i < len; i++) {
