@@ -6,15 +6,25 @@
 <body>
 
 
+<p >Dear Clinton,</p>
+
+<p  style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
+
+<p style="border:solid 1px;">Servidor de usted,</p>
+
+<h2 style="border:solid 1px">--van</h2>
+
+<p>some dummy untyped content</p>
+
+<hr>
+
 <p class="analogue">Dear Clinton,</p>
 
 <p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
 
-<p class="analogue">Servidor de usted,</p>
+<p class="analogue" style="border:solid 1px">Servidor de usted,</p>
 
-<h2 >--van</h2>
-
-<p>some dummy untyped content</p>
+<h2 class="analogue" style="border:solid 1px">--van</h2>
 
 
 <script>
@@ -37,14 +47,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// TODO: generate canvas based on the size of the existing paragraph.
 // TODO: multi-line paragraphs.
-// TODO: when positioning canvases, respect margins / borders and padding.
-
-// RENDERING:
 // TODO: Render random correction tape behind some sections of the text.
 // TODO: The ability to set foreground and background colours.
 // TODO: Make typo ink strike a bit softer than accurate strikes.
+// TODO: Text is not correctly aligned vertically within the canvas (a little high) + magic number.
+// TODO: Margins are not being copied correctly in firefox developer edition. 
 
 var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
 
@@ -104,12 +112,12 @@ function typeCharacter(ctx, c, nc, s, h) {
 	// render transposition typographical errors. 
 	if (c != " " && nc && chance(2)) {
 		ctx.fillStyle=generateInkStrike(ctx, s, w, h);// approximate type bar strike.
-		ctx.fillText(nc, s, w+2+rand(0,2));
+		ctx.fillText(nc, s, w+5+rand(0,2));
 	}
 
 	ctx.fillStyle=generateInkStrike(ctx, s, w, h);// approximate type bar strike.
-	ctx.fillText(c, s, w+2+rand(0,2));			  // render foundation character.
-	ctx.fillText(c, s+rand(0, 1), w+2+rand(0,2)); // bleed character onto the page.
+	ctx.fillText(c, s, w+5+rand(0,2));			  // render foundation character.
+	ctx.fillText(c, s+rand(0, 1), w+5+rand(0,2)); // bleed character onto the page.
 
 	return w;
 }
@@ -117,14 +125,22 @@ function typeCharacter(ctx, c, nc, s, h) {
 function typeParagraph(eExisting) {
 	// Create canvas element that we will use to re-render the content off the existing element.
 	var eCanvas = document.createElement("canvas");
+	var existingStyle = eExisting.currentStyle || window.getComputedStyle(eExisting);
 
 	// Model the width and the height of the canvas off the existing element.
 	eCanvas.setAttribute("width", eExisting.offsetWidth);
 	eCanvas.setAttribute("height", eExisting.offsetHeight);
+
+	// Copy the basic display settings across.
+	eCanvas.style.border = existingStyle.border;
+	eCanvas.style.display = existingStyle.display;
+	eCanvas.style.margin = existingStyle.margin;
+	eCanvas.style.padding = existingStyle.padding;
+
 	//eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
 
 	// Model the size of the type off the existing element.
-	var fSize = parseFloat(window.getComputedStyle(eExisting, null).getPropertyValue('font-size'));
+	var fSize = parseFloat(existingStyle.getPropertyValue('font-size'));
 
 	// Configure our canvas rendering context.
 	var ctx = eCanvas.getContext("2d");
