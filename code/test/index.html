@@ -6,13 +6,13 @@
 <body>
 
 
-<p >Dear Clinton,</p>
+<p>Dear Clinton,</p>
 
-<p  style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
+<p  style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';border:solid 1px">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
 
-<p style="border:solid 1px;">Servidor de usted,</p>
+<p>Servidor de usted,</p>
 
-<h2 style="border:solid 1px">--van</h2>
+<h2>--van</h2>
 
 <p>some dummy untyped content</p>
 
@@ -20,11 +20,11 @@
 
 <p class="analogue">Dear Clinton,</p>
 
-<p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
+<p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';border: solid 1px">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
 
-<p class="analogue" style="border:solid 1px">Servidor de usted,</p>
+<p class="analogue">Servidor de usted,</p>
 
-<h2 class="analogue" style="border:solid 1px">--van</h2>
+<h2 class="analogue">--van</h2>
 
 
 <script>
@@ -51,17 +51,16 @@
 // TODO: Render random correction tape behind some sections of the text.
 // TODO: The ability to set foreground and background colours.
 // TODO: Make typo ink strike a bit softer than accurate strikes.
-// TODO: Text is not correctly aligned vertically within the canvas (a little high) + magic number.
 // TODO: Margins are not being copied correctly in firefox developer edition. 
 
 var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
 
-function rand(s, e) {
-	return Math.floor((Math.random() * e) + s) | 0;
+function rand(iStart, iEnd) {
+	return Math.floor((Math.random() * iEnd) + iStart) | 0;
 }
 
-function chance(p) {
-	if (rand(0, 100) >= (100 - p)) {
+function chance(iProbability) {
+	if (rand(0, 100) >= (100 - iProbability)) {
 		return true;
 	}
 
@@ -69,7 +68,7 @@ function chance(p) {
 }
 
 function generateInkStrike(ctx, s, w, h) {
-	var hLower = (h * 0.7 | 0);
+	var hLower = (h * 0.7) | 0;
 	var hUpper = h;
 
 	var wLower = s;
@@ -87,39 +86,43 @@ function generateInkStrike(ctx, s, w, h) {
 
 	var res = ctx.createLinearGradient(s, 0, wGradient, hGradient);
 	res.addColorStop(0,"black");
-	res.addColorStop(1,"rgb(190,190,190)");
+	res.addColorStop(1,"rgb(160,160,160)");
 	return res;
 }
 
-function typeCharacter(ctx, c, nc, s, h) {
-	var w = ctx.measureText(c).width | 0;
+function typeCharacter(ctx, sChar, sNextChar, iSize, iHeight, iLineHeight) {
+	var iWidth = ctx.measureText(sChar).width | 0;
+	var iVOffset = iLineHeight - iHeight;
+	var iHalfHeight = (iLineHeight / 2) | 0;
 
 	// render smudges / deepened bleed for characters with enclosing strokes.
-	if (smudge.indexOf(c.toLowerCase()) != -1 && chance(10)) {
+	if (smudge.indexOf(sChar.toLowerCase()) != -1 && chance(10)) {
 		// console.log("s: " + s);
 		// console.log("h: " + h);
 		// console.log("width: " + w);
 		// console.log("height: " + h);
 
-		var grd=ctx.createRadialGradient(s+rand(w/3,w/2), 8,1, s+rand(w/3,w/2),8, w/2+1);
+		var grd = ctx.createRadialGradient(iSize+rand(iWidth/3,iWidth/2), iHalfHeight, 1,
+										   iSize+rand(iWidth/3,iWidth/2), iHalfHeight, iWidth/2+1);
 		var g = rand(120, 220);
 		grd.addColorStop(0,"rgb("+g+","+g+","+g+")");
 		grd.addColorStop(1,"white");
 		ctx.fillStyle=grd;
-		ctx.fillRect(s, 0, w, 19); 
+		ctx.fillRect(iSize, 0, iWidth, iSize);
 	}	
 
 	// render transposition typographical errors. 
-	if (c != " " && nc && chance(2)) {
-		ctx.fillStyle=generateInkStrike(ctx, s, w, h);// approximate type bar strike.
-		ctx.fillText(nc, s, w+5+rand(0,2));
+	if (sChar != " " && sNextChar && chance(2)) {
+		ctx.fillStyle=generateInkStrike(ctx, iSize, iWidth, iHeight);	// approximate type bar strike.
+		ctx.fillText(sNextChar, iSize, iWidth+iVOffset+rand(0,2));
 	}
 
-	ctx.fillStyle=generateInkStrike(ctx, s, w, h);// approximate type bar strike.
-	ctx.fillText(c, s, w+5+rand(0,2));			  // render foundation character.
-	ctx.fillText(c, s+rand(0, 1), w+5+rand(0,2)); // bleed character onto the page.
+	// render the character tho the canvas.
+	ctx.fillStyle=generateInkStrike(ctx, iSize, iWidth, iHeight);		// approximate type bar strike.
+	ctx.fillText(sChar, iSize, iWidth+iVOffset+rand(0,2));				// render foundation character.
+	ctx.fillText(sChar, iSize+rand(0, 1), iWidth+iVOffset+rand(0,2));	// bleed character onto the page.
 
-	return w;
+	return iWidth;
 }
 
 function typeParagraph(eExisting) {
@@ -140,22 +143,36 @@ function typeParagraph(eExisting) {
 	//eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
 
 	// Model the size of the type off the existing element.
-	var fSize = parseFloat(existingStyle.getPropertyValue('font-size'));
+	var iSize = parseInt(existingStyle.getPropertyValue('font-size'));
 
 	// Configure our canvas rendering context.
 	var ctx = eCanvas.getContext("2d");
-	ctx.font = fSize + "px \"Courier New\",monospace";
+	ctx.font = iSize + "px \"Courier New\",monospace";
+
+	// Estimate lines.
+	var iLines = eExisting.offsetHeight / iSize | 0;
+	console.log("iLines: " + iLines);
+	console.log("canvasHeight: " + eExisting.offsetHeight);
+	console.log("fontSize:" + iSize);
+
+	var iMarginTop = parseInt(existingStyle.getPropertyValue('border-top-width'))
+	var iMarginBottom = parseInt(existingStyle.getPropertyValue('border-bottom-width'))
+
+
+	var iLineHeight = (eExisting.offsetHeight + (iMarginTop + iMarginBottom) )/ iLines;
+	console.log("lineHeight:"+iLineHeight)
 
 	// Start pecking away at our virtual typewritter.
 	var p = 0;
 	for(var i = 0, len = eExisting.innerHTML.length; i < len; i++) {
-		p = p + typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1], p, fSize);
+		p = p + typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1], p, iSize, iLineHeight);
 	}
 
 	eExisting.parentNode.insertBefore(eCanvas, eExisting);
 	eExisting.style.display = 'none'; // Hide the original content. The canvas has replaced it.
 }
 
+// For each tag marked with the analogue class -- replace the content with a canvas typeset with analogue.
 aTypingList = document.querySelectorAll(".analogue");
 for (var i = 0, len = aTypingList.length; i < len; i++) {
 	typeParagraph(aTypingList[i])
