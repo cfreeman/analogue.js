@@ -3,8 +3,8 @@
 <head>
 <link href="http://fonts.googleapis.com/css?family=Roboto+Slab:700|Open+Sans:300italic,400,300,600,600italic" rel="stylesheet" type="text/css">
 </head>
-<body>
-
+<body style="background-color:rgb(235,222,205);">
+style="background-color:rgb(0,0,0);color:rgb(255,255,255);"
 
 <p>Dear Clinton,</p>
 
@@ -49,14 +49,42 @@
 
 // TODO: multi-line paragraphs.
 // TODO: Render random correction tape behind some sections of the text.
-// TODO: The ability to set foreground and background colours.
-// TODO: Make typo ink strike a bit softer than accurate strikes.
 // TODO: Margins are not being copied correctly in firefox developer edition. 
+// TODO: Estimate # lines by using total rendered character length.
 
 var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
 
 function rand(iStart, iEnd) {
 	return Math.floor((Math.random() * iEnd) + iStart) | 0;
+}
+
+function randF(fStart, fEnd) {
+	return (Math.random() * fEnd) + fStart;
+}
+
+function parseColor(sColor) {
+	var result = sColor.match(/\d+/g).map(function(sValue) {
+		return parseInt(sValue);
+	});
+
+	// Make sure the color is rgba.
+	if (result.length < 4) {
+		var iSize = 4 - result.length;
+		while(iSize--) {result.push(1)}
+	}
+
+	return result;
+}
+
+function randAlphaC(cColor, fStart, fEnd) {
+	var result = cColor.slice();
+	result[3] = randF(fStart, fEnd);
+
+	return result;
+}
+
+function colorToS(cColor) {
+	return "rgba("+cColor[0]+","+cColor[1]+","+cColor[2]+","+cColor[3]+")";
 }
 
 function chance(iProbability) {
@@ -67,12 +95,13 @@ function chance(iProbability) {
 	return false;
 }
 
-function generateInkStrike(ctx, s, w, h) {
-	var hLower = (h * 0.7) | 0;
-	var hUpper = h;
+function generateInkStrike(ctx, iHOffset, iWidth,
+						   iHeight, cForeground, cBackground) {
+	var hLower = (iHeight * 0.7) | 0;
+	var hUpper = iHeight;
 
-	var wLower = s;
-	var wUpper = w;
+	var wLower = iHOffset;
+	var wUpper = iWidth;
 
 	var hGradient = rand(hLower, hUpper);
 	var wGradient = rand(wLower, wUpper);
@@ -84,16 +113,27 @@ function generateInkStrike(ctx, s, w, h) {
 	// console.log("hGradient " + hGradient);
 	// console.log("wGradient " + wGradient);
 
-	var res = ctx.createLinearGradient(s, 0, wGradient, hGradient);
-	res.addColorStop(0,"black");
-	res.addColorStop(1,"rgb(160,160,160)");
+	var res = ctx.createLinearGradient(iHOffset, 0, wGradient, hGradient);
+	res.addColorStop(0,colorToS(cForeground));
+
+	var cFade = randAlphaC(cForeground, 0.2, 0.6);
+	res.addColorStop(1,colorToS(cFade));
 	return res;
 }
 
-function typeCharacter(ctx, sChar, sNextChar, iSize, iHeight, iLineHeight) {
+function typeCharacter(ctx, sChar, sNextChar, iHOffset,
+					   iHeight, iLineHeight, cForeground, cBackground) {
 	var iWidth = ctx.measureText(sChar).width | 0;
 	var iVOffset = iLineHeight - iHeight;
 	var iHalfHeight = (iLineHeight / 2) | 0;
+
+	// render transposition typographical errors.
+	if (sChar != " " && sNextChar && chance(2)) {
+		var cTypo = randAlphaC(cForeground, 0.5, 0.7);
+		ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
+										  iHeight, cTypo, cBackground);	// approximate type bar strike.
+		ctx.fillText(sNextChar, iHOffset, iWidth+iVOffset+rand(0,2));
+	}
 
 	// render smudges / deepened bleed for characters with enclosing strokes.
 	if (smudge.indexOf(sChar.toLowerCase()) != -1 && chance(10)) {
@@ -102,25 +142,20 @@ function typeCharacter(ctx, sChar, sNextChar, iSize, iHeight, iLineHeight) {
 		// console.log("width: " + w);
 		// console.log("height: " + h);
 
-		var grd = ctx.createRadialGradient(iSize+rand(iWidth/3,iWidth/2), iHalfHeight, 1,
-										   iSize+rand(iWidth/3,iWidth/2), iHalfHeight, iWidth/2+1);
-		var g = rand(120, 220);
-		grd.addColorStop(0,"rgb("+g+","+g+","+g+")");
-		grd.addColorStop(1,"white");
-		ctx.fillStyle=grd;
-		ctx.fillRect(iSize, 0, iWidth, iSize);
-	}	
+		var grd = ctx.createRadialGradient(iHOffset+rand(iWidth/3,iWidth/2), iHalfHeight, 1,
+										   iHOffset+rand(iWidth/3,iWidth/2), iHalfHeight, iWidth/2+1);
 
-	// render transposition typographical errors. 
-	if (sChar != " " && sNextChar && chance(2)) {
-		ctx.fillStyle=generateInkStrike(ctx, iSize, iWidth, iHeight);	// approximate type bar strike.
-		ctx.fillText(sNextChar, iSize, iWidth+iVOffset+rand(0,2));
+		grd.addColorStop(0, colorToS(randAlphaC(cForeground, 0.0, 0.6)));
+		grd.addColorStop(1, colorToS(cBackground));
+		ctx.fillStyle = grd;
+		ctx.fillRect(iHOffset, 0, iWidth, iHeight);
 	}
 
 	// render the character tho the canvas.
-	ctx.fillStyle=generateInkStrike(ctx, iSize, iWidth, iHeight);		// approximate type bar strike.
-	ctx.fillText(sChar, iSize, iWidth+iVOffset+rand(0,2));				// render foundation character.
-	ctx.fillText(sChar, iSize+rand(0, 1), iWidth+iVOffset+rand(0,2));	// bleed character onto the page.
+	ctx.fillStyle=generateInkStrike(ctx, iHOffset, iWidth,
+									iHeight, cForeground, cBackground);		// approximate type bar strike.
+	ctx.fillText(sChar, iHOffset, iWidth+iVOffset+rand(0,2));				// render foundation character.
+	ctx.fillText(sChar, iHOffset+rand(0, 1), iWidth+iVOffset+rand(0,2));	// bleed character onto the page.
 
 	return iWidth;
 }
@@ -151,21 +186,22 @@ function typeParagraph(eExisting) {
 
 	// Estimate lines.
 	var iLines = eExisting.offsetHeight / iSize | 0;
-	console.log("iLines: " + iLines);
-	console.log("canvasHeight: " + eExisting.offsetHeight);
-	console.log("fontSize:" + iSize);
-
 	var iMarginTop = parseInt(existingStyle.getPropertyValue('border-top-width'))
 	var iMarginBottom = parseInt(existingStyle.getPropertyValue('border-bottom-width'))
-
-
 	var iLineHeight = (eExisting.offsetHeight + (iMarginTop + iMarginBottom) )/ iLines;
-	console.log("lineHeight:"+iLineHeight)
+	var cForeground = parseColor(existingStyle.color);
+	var cBackground = parseColor(existingStyle.backgroundColor);
+
+	//console.log("lineHeight:"+iLineHeight)
+	// console.log("iLines: " + iLines);
+	// console.log("canvasHeight: " + eExisting.offsetHeight);
+	// console.log("fontSize:" + iSize);
 
 	// Start pecking away at our virtual typewritter.
 	var p = 0;
 	for(var i = 0, len = eExisting.innerHTML.length; i < len; i++) {
-		p = p + typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1], p, iSize, iLineHeight);
+		p = p + typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1],
+							  p, iSize, iLineHeight, cForeground, cBackground);
 	}
 
 	eExisting.parentNode.insertBefore(eCanvas, eExisting);
