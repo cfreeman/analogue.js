@@ -3,7 +3,7 @@
 <head>
 <link href="http://fonts.googleapis.com/css?family=Roboto+Slab:700|Open+Sans:300italic,400,300,600,600italic" rel="stylesheet" type="text/css">
 </head>
-<body style="background-color:rgb(235,222,205);">
+<body style="background-color:rgb(247,245,230);">
 style="background-color:rgb(0,0,0);color:rgb(255,255,255);"
 
 <p>Dear Clinton,</p>
@@ -55,163 +55,163 @@ style="background-color:rgb(0,0,0);color:rgb(255,255,255);"
 var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
 
 function rand(iStart, iEnd) {
-	return Math.floor((Math.random() * iEnd) + iStart) | 0;
+  return Math.floor((Math.random() * iEnd) + iStart) | 0;
 }
 
 function randF(fStart, fEnd) {
-	return (Math.random() * fEnd) + fStart;
+  return (Math.random() * fEnd) + fStart;
 }
 
 function parseColor(sColor) {
-	var result = sColor.match(/\d+/g).map(function(sValue) {
-		return parseInt(sValue);
-	});
+  var result = sColor.match(/\d+/g).map(function(sValue) {
+    return parseInt(sValue);
+  });
 
-	// Make sure the color is rgba.
-	if (result.length < 4) {
-		var iSize = 4 - result.length;
-		while(iSize--) {result.push(1)}
-	}
+  // Make sure the color is rgba.
+  if (result.length < 4) {
+    var iSize = 4 - result.length;
+    while(iSize--) {result.push(1)}
+  }
 
-	return result;
+  return result;
 }
 
 function randAlphaC(cColor, fStart, fEnd) {
-	var result = cColor.slice();
-	result[3] = randF(fStart, fEnd);
+  var result = cColor.slice();
+  result[3] = randF(fStart, fEnd);
 
-	return result;
+  return result;
 }
 
 function colorToS(cColor) {
-	return "rgba("+cColor[0]+","+cColor[1]+","+cColor[2]+","+cColor[3]+")";
+  return "rgba("+cColor[0]+","+cColor[1]+","+cColor[2]+","+cColor[3]+")";
 }
 
 function chance(iProbability) {
-	if (rand(0, 100) >= (100 - iProbability)) {
-		return true;
-	}
+  if (rand(0, 100) >= (100 - iProbability)) {
+    return true;
+  }
 
-	return false;
+  return false;
 }
 
 function generateInkStrike(ctx, iHOffset, iWidth,
-						   iHeight, cForeground, cBackground) {
-	var hLower = (iHeight * 0.7) | 0;
-	var hUpper = iHeight;
+               iHeight, cForeground, cBackground) {
+  var hLower = (iHeight * 0.7) | 0;
+  var hUpper = iHeight;
 
-	var wLower = iHOffset;
-	var wUpper = iWidth;
+  var wLower = iHOffset;
+  var wUpper = iWidth;
 
-	var hGradient = rand(hLower, hUpper);
-	var wGradient = rand(wLower, wUpper);
+  var hGradient = rand(hLower, hUpper);
+  var wGradient = rand(wLower, wUpper);
 
-	// console.log("hLower: " + hLower);
-	// console.log("hUpper: " + hUpper);
-	// console.log("wLower: " + wLower);
-	// console.log("wUpper: " + wUpper);
-	// console.log("hGradient " + hGradient);
-	// console.log("wGradient " + wGradient);
+  // console.log("hLower: " + hLower);
+  // console.log("hUpper: " + hUpper);
+  // console.log("wLower: " + wLower);
+  // console.log("wUpper: " + wUpper);
+  // console.log("hGradient " + hGradient);
+  // console.log("wGradient " + wGradient);
 
-	var res = ctx.createLinearGradient(iHOffset, 0, wGradient, hGradient);
-	res.addColorStop(0,colorToS(cForeground));
+  var res = ctx.createLinearGradient(iHOffset, 0, wGradient, hGradient);
+  res.addColorStop(0,colorToS(cForeground));
 
-	var cFade = randAlphaC(cForeground, 0.2, 0.6);
-	res.addColorStop(1,colorToS(cFade));
-	return res;
+  var cFade = randAlphaC(cForeground, 0.2, 0.6);
+  res.addColorStop(1,colorToS(cFade));
+  return res;
 }
 
 function typeCharacter(ctx, sChar, sNextChar, iHOffset,
-					   iHeight, iLineHeight, cForeground, cBackground) {
-	var iWidth = ctx.measureText(sChar).width | 0;
-	var iVOffset = iLineHeight - iHeight;
-	var iHalfHeight = (iLineHeight / 2) | 0;
+             iHeight, iLineHeight, cForeground, cBackground) {
+  var iWidth = ctx.measureText(sChar).width | 0;
+  var iVOffset = iLineHeight - iHeight;
+  var iHalfHeight = (iLineHeight / 2) | 0;
 
-	// render transposition typographical errors.
-	if (sChar != " " && sNextChar && chance(2)) {
-		var cTypo = randAlphaC(cForeground, 0.5, 0.7);
-		ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
-										  iHeight, cTypo, cBackground);	// approximate type bar strike.
-		ctx.fillText(sNextChar, iHOffset, iWidth+iVOffset+rand(0,2));
-	}
+  // render transposition typographical errors.
+  if (sChar != " " && sNextChar && chance(2)) {
+    var cTypo = randAlphaC(cForeground, 0.5, 0.7);
+    ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
+                      iHeight, cTypo, cBackground); // approximate type bar strike.
+    ctx.fillText(sNextChar, iHOffset, iWidth+iVOffset+rand(0,2));
+  }
 
-	// render smudges / deepened bleed for characters with enclosing strokes.
-	if (smudge.indexOf(sChar.toLowerCase()) != -1 && chance(10)) {
-		// console.log("s: " + s);
-		// console.log("h: " + h);
-		// console.log("width: " + w);
-		// console.log("height: " + h);
+  // render smudges / deepened bleed for characters with enclosing strokes.
+  if (smudge.indexOf(sChar.toLowerCase()) != -1 && chance(10)) {
+    // console.log("s: " + s);
+    // console.log("h: " + h);
+    // console.log("width: " + w);
+    // console.log("height: " + h);
 
-		var grd = ctx.createRadialGradient(iHOffset+rand(iWidth/3,iWidth/2), iHalfHeight, 1,
-										   iHOffset+rand(iWidth/3,iWidth/2), iHalfHeight, iWidth/2+1);
+    var grd = ctx.createRadialGradient(iHOffset+rand(iWidth/3,iWidth/2), iHalfHeight, 1,
+                       iHOffset+rand(iWidth/3,iWidth/2), iHalfHeight, iWidth/2+1);
 
-		grd.addColorStop(0, colorToS(randAlphaC(cForeground, 0.0, 0.6)));
-		grd.addColorStop(1, colorToS(cBackground));
-		ctx.fillStyle = grd;
-		ctx.fillRect(iHOffset, 0, iWidth, iHeight);
-	}
+    grd.addColorStop(0, colorToS(randAlphaC(cForeground, 0.0, 0.6)));
+    grd.addColorStop(1, colorToS(cBackground));
+    ctx.fillStyle = grd;
+    ctx.fillRect(iHOffset, 0, iWidth, iHeight);
+  }
 
-	// render the character tho the canvas.
-	ctx.fillStyle=generateInkStrike(ctx, iHOffset, iWidth,
-									iHeight, cForeground, cBackground);		// approximate type bar strike.
-	ctx.fillText(sChar, iHOffset, iWidth+iVOffset+rand(0,2));				// render foundation character.
-	ctx.fillText(sChar, iHOffset+rand(0, 1), iWidth+iVOffset+rand(0,2));	// bleed character onto the page.
+  // render the character tho the canvas.
+  ctx.fillStyle=generateInkStrike(ctx, iHOffset, iWidth,
+                  iHeight, cForeground, cBackground);   // approximate type bar strike.
+  ctx.fillText(sChar, iHOffset, iWidth+iVOffset+rand(0,2));       // render foundation character.
+  ctx.fillText(sChar, iHOffset+rand(0, 1), iWidth+iVOffset+rand(0,2));  // bleed character onto the page.
 
-	return iWidth;
+  return iWidth;
 }
 
 function typeParagraph(eExisting) {
-	// Create canvas element that we will use to re-render the content off the existing element.
-	var eCanvas = document.createElement("canvas");
-	var existingStyle = eExisting.currentStyle || window.getComputedStyle(eExisting);
+  // Create canvas element that we will use to re-render the content off the existing element.
+  var eCanvas = document.createElement("canvas");
+  var existingStyle = eExisting.currentStyle || window.getComputedStyle(eExisting);
 
-	// Model the width and the height of the canvas off the existing element.
-	eCanvas.setAttribute("width", eExisting.offsetWidth);
-	eCanvas.setAttribute("height", eExisting.offsetHeight);
+  // Model the width and the height of the canvas off the existing element.
+  eCanvas.setAttribute("width", eExisting.offsetWidth);
+  eCanvas.setAttribute("height", eExisting.offsetHeight);
 
-	// Copy the basic display settings across.
-	eCanvas.style.border = existingStyle.border;
-	eCanvas.style.display = existingStyle.display;
-	eCanvas.style.margin = existingStyle.margin;
-	eCanvas.style.padding = existingStyle.padding;
+  // Copy the basic display settings across.
+  eCanvas.style.border = existingStyle.border;
+  eCanvas.style.display = existingStyle.display;
+  eCanvas.style.margin = existingStyle.margin;
+  eCanvas.style.padding = existingStyle.padding;
 
-	//eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
+  //eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
 
-	// Model the size of the type off the existing element.
-	var iSize = parseInt(existingStyle.getPropertyValue('font-size'));
+  // Model the size of the type off the existing element.
+  var iSize = parseInt(existingStyle.getPropertyValue('font-size'));
 
-	// Configure our canvas rendering context.
-	var ctx = eCanvas.getContext("2d");
-	ctx.font = iSize + "px \"Courier New\",monospace";
+  // Configure our canvas rendering context.
+  var ctx = eCanvas.getContext("2d");
+  ctx.font = iSize + "px \"Courier New\",monospace";
+ 
+  // Estimate lines.
+  var iLines = eExisting.offsetHeight / iSize | 0;
+  var iMarginTop = parseInt(existingStyle.getPropertyValue('border-top-width'))
+  var iMarginBottom = parseInt(existingStyle.getPropertyValue('border-bottom-width'))
+  var iLineHeight = (eExisting.offsetHeight + (iMarginTop + iMarginBottom) )/ iLines;
+  var cForeground = parseColor(existingStyle.color);
+  var cBackground = parseColor(existingStyle.backgroundColor);
 
-	// Estimate lines.
-	var iLines = eExisting.offsetHeight / iSize | 0;
-	var iMarginTop = parseInt(existingStyle.getPropertyValue('border-top-width'))
-	var iMarginBottom = parseInt(existingStyle.getPropertyValue('border-bottom-width'))
-	var iLineHeight = (eExisting.offsetHeight + (iMarginTop + iMarginBottom) )/ iLines;
-	var cForeground = parseColor(existingStyle.color);
-	var cBackground = parseColor(existingStyle.backgroundColor);
+  //console.log("lineHeight:"+iLineHeight)
+  // console.log("iLines: " + iLines);
+  // console.log("canvasHeight: " + eExisting.offsetHeight);
+  // console.log("fontSize:" + iSize);
 
-	//console.log("lineHeight:"+iLineHeight)
-	// console.log("iLines: " + iLines);
-	// console.log("canvasHeight: " + eExisting.offsetHeight);
-	// console.log("fontSize:" + iSize);
+  // Start pecking away at our virtual typewritter.
+  var p = 0;
+  for(var i = 0, len = eExisting.innerHTML.length; i < len; i++) {
+    p = p + typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1],
+                p, iSize, iLineHeight, cForeground, cBackground);
+  }
 
-	// Start pecking away at our virtual typewritter.
-	var p = 0;
-	for(var i = 0, len = eExisting.innerHTML.length; i < len; i++) {
-		p = p + typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1],
-							  p, iSize, iLineHeight, cForeground, cBackground);
-	}
-
-	eExisting.parentNode.insertBefore(eCanvas, eExisting);
-	eExisting.style.display = 'none'; // Hide the original content. The canvas has replaced it.
+  eExisting.parentNode.insertBefore(eCanvas, eExisting);
+  eExisting.style.display = 'none'; // Hide the original content. The canvas has replaced it.
 }
 
 // For each tag marked with the analogue class -- replace the content with a canvas typeset with analogue.
 aTypingList = document.querySelectorAll(".analogue");
 for (var i = 0, len = aTypingList.length; i < len; i++) {
-	typeParagraph(aTypingList[i])
+  typeParagraph(aTypingList[i])
 }
 </script>
 
