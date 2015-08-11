@@ -3,31 +3,31 @@
 <head>
 <link href="http://fonts.googleapis.com/css?family=Roboto+Slab:700|Open+Sans:300italic,400,300,600,600italic" rel="stylesheet" type="text/css">
 </head>
-<body style="background-color:rgb(247,245,230);">
-style="background-color:rgb(0,0,0);color:rgb(255,255,255);"
+<body style="background-color:rgb(249,249,249);">
 
-<p>Dear Clinton,</p>
+<p style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif'">Dear Clinton,</p>
 
-<p  style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';border:solid 1px">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
+<p style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif'">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
 
-<p>Servidor de usted,</p>
+<p style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif'">Servidor de usted,</p>
 
 <h2>--van</h2>
 
-<p>some dummy untyped content</p>
+<p>some dummy untyped content -- style="background-color:rgb(0,0,0);color:rgb(255,255,255);"</p>
 
 <hr>
 
 <p class="analogue">Dear Clinton,</p>
 
-<p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';border: solid 1px">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
+<p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif'">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
 
 <p class="analogue">Servidor de usted,</p>
 
 <h2 class="analogue">--van</h2>
 
-
 <script>
+"use strict"
+
 /**
  * Copyright (c) Clinton Freeman 2015
  *
@@ -51,6 +51,15 @@ style="background-color:rgb(0,0,0);color:rgb(255,255,255);"
 // TODO: Render random correction tape behind some sections of the text.
 // TODO: Margins are not being copied correctly in firefox developer edition. 
 // TODO: Estimate # lines by using total rendered character length.
+
+/**
+ Work out line: measure text size of string indexed at known width of canvas.
+ If string indexed lands on non white space, rfind white space. That is the line type. Repeat building lines till we are out of text. 
+
+ Use total number of lines and line height to work out total vertial space required.
+ */
+
+Use total number of lines and line height to work out vertical space needed. 
 
 var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
 
@@ -96,7 +105,7 @@ function chance(iProbability) {
 }
 
 function generateInkStrike(ctx, iHOffset, iWidth,
-               iHeight, cForeground, cBackground) {
+                           iHeight, cForeground, cBackground) {
   var hLower = (iHeight * 0.7) | 0;
   var hUpper = iHeight;
 
@@ -121,17 +130,25 @@ function generateInkStrike(ctx, iHOffset, iWidth,
   return res;
 }
 
-function typeCharacter(ctx, sChar, sNextChar, iHOffset,
-             iHeight, iLineHeight, cForeground, cBackground) {
+function typeCharacter(ctx, sChar, sNextChar, pos,
+                       iHeight, iLineHeight, iElementWidth, cForeground,
+                       cBackground) {
   var iWidth = ctx.measureText(sChar).width | 0;
-  var iVOffset = iLineHeight - iHeight;
+  var iHOffset = pos[0];
+
+  var iVOffset = pos[1];
+  if ((iWidth + iHOffset) > iElementWidth) {
+    iHOffset = 0;
+    iVOffset = iVOffset + iLineHeight;
+  }
+  
   var iHalfHeight = (iLineHeight / 2) | 0;
 
   // render transposition typographical errors.
   if (sChar != " " && sNextChar && chance(2)) {
     var cTypo = randAlphaC(cForeground, 0.5, 0.7);
     ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
-                      iHeight, cTypo, cBackground); // approximate type bar strike.
+                      iHeight, cTypo, cBackground);                     // approximate type bar strike.
     ctx.fillText(sNextChar, iHOffset, iWidth+iVOffset+rand(0,2));
   }
 
@@ -153,11 +170,20 @@ function typeCharacter(ctx, sChar, sNextChar, iHOffset,
 
   // render the character tho the canvas.
   ctx.fillStyle=generateInkStrike(ctx, iHOffset, iWidth,
-                  iHeight, cForeground, cBackground);   // approximate type bar strike.
-  ctx.fillText(sChar, iHOffset, iWidth+iVOffset+rand(0,2));       // render foundation character.
+                                  iHeight, cForeground, cBackground);   // approximate type bar strike.
+  ctx.fillText(sChar, iHOffset, iWidth+iVOffset+rand(0,2));             // render foundation character.
   ctx.fillText(sChar, iHOffset+rand(0, 1), iWidth+iVOffset+rand(0,2));  // bleed character onto the page.
 
-  return iWidth;
+  return [iHOffset + iWidth, iVOffset];
+}
+
+function typeWord(ctx, word, position) {
+  var fWidth = ctx.measureText(word).width;
+
+
+  console.log(word+"-"+fWidth);
+
+  return position;
 }
 
 function typeParagraph(eExisting) {
@@ -166,6 +192,7 @@ function typeParagraph(eExisting) {
   var existingStyle = eExisting.currentStyle || window.getComputedStyle(eExisting);
 
   // Model the width and the height of the canvas off the existing element.
+  var iElementWidth = eExisting.offsetWidth;
   eCanvas.setAttribute("width", eExisting.offsetWidth);
   eCanvas.setAttribute("height", eExisting.offsetHeight);
 
@@ -174,7 +201,6 @@ function typeParagraph(eExisting) {
   eCanvas.style.display = existingStyle.display;
   eCanvas.style.margin = existingStyle.margin;
   eCanvas.style.padding = existingStyle.padding;
-
   //eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
 
   // Model the size of the type off the existing element.
@@ -183,6 +209,9 @@ function typeParagraph(eExisting) {
   // Configure our canvas rendering context.
   var ctx = eCanvas.getContext("2d");
   ctx.font = iSize + "px \"Courier New\",monospace";
+
+  // Total linear pixels needed for content:
+  var fWidth = ctx.measureText(eExisting.innerHTML).width;
  
   // Estimate lines.
   var iLines = eExisting.offsetHeight / iSize | 0;
@@ -192,16 +221,26 @@ function typeParagraph(eExisting) {
   var cForeground = parseColor(existingStyle.color);
   var cBackground = parseColor(existingStyle.backgroundColor);
 
-  //console.log("lineHeight:"+iLineHeight)
+  // var content = eExisting.innerHTML.split(/[ ]+/);
+
+  // var pos = [0, iLineHeight];
+  // for (var i = 0, len = content.length; i < len; i++) {
+  //   pos = typeWord(ctx, content[i], pos);
+  // }
+
+  // console.log("lineHeight:"+iLineHeight)
   // console.log("iLines: " + iLines);
   // console.log("canvasHeight: " + eExisting.offsetHeight);
   // console.log("fontSize:" + iSize);
 
   // Start pecking away at our virtual typewritter.
-  var p = 0;
+  var iVOffset = iLineHeight - iSize;
+  var iHOffset = 0
+  var pos = [iHOffset, iVOffset];
+
   for(var i = 0, len = eExisting.innerHTML.length; i < len; i++) {
-    p = p + typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1],
-                p, iSize, iLineHeight, cForeground, cBackground);
+    pos = typeCharacter(ctx, eExisting.innerHTML[i], eExisting.innerHTML[i+1],
+                        pos, iSize, iLineHeight, iElementWidth, cForeground, cBackground);
   }
 
   eExisting.parentNode.insertBefore(eCanvas, eExisting);
@@ -209,7 +248,7 @@ function typeParagraph(eExisting) {
 }
 
 // For each tag marked with the analogue class -- replace the content with a canvas typeset with analogue.
-aTypingList = document.querySelectorAll(".analogue");
+var aTypingList = document.querySelectorAll(".analogue");
 for (var i = 0, len = aTypingList.length; i < len; i++) {
   typeParagraph(aTypingList[i])
 }
