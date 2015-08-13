@@ -54,12 +54,10 @@
 
 /**
  Work out line: measure text size of string indexed at known width of canvas.
- If string indexed lands on non white space, rfind white space. That is the line type. Repeat building lines till we are out of text. 
+ If string indexed lands on non white space, rfind white space. That is the line of type. If the line lands on white space, move forward till we find non-white space. That will be the start of the next line. Repeat. Building lines till we are out of input text.
 
- Use total number of lines and line height to work out total vertial space required.
+ Use total number of lines and line height to work out total vertical space required.
  */
-
-Use total number of lines and line height to work out vertical space needed. 
 
 var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
 
@@ -186,6 +184,33 @@ function typeWord(ctx, word, position) {
   return position;
 }
 
+function buildLines(ctx, sContent, iMaxWidth) {
+  var aLines = new Array();
+
+  // Estimte number of characters that can fit on a line.
+  var iCharWidth = Math.ceil(ctx.measureText(sContent[0]).width) | 0;
+  var iMaxLineLength = Math.floor(iMaxWidth / iCharWidth) | 0;
+
+  var iPrevLineIndex = 0;
+  var iLineEnd = sContent.length;
+  var sRemainingContent = sContent;
+
+  // Break the content into lines, making sure we don't split words.
+  while (sRemainingContent.length > iMaxLineLength) {
+    var iCurrentLineLength = Math.min(sRemainingContent.length, iMaxLineLength);
+    iLineEnd = sRemainingContent.substring(iPrevLineIndex, iCurrentLineLength).lastIndexOf(" ");
+
+    aLines.push(sRemainingContent.substring(iPrevLineIndex, iLineEnd));
+
+    iPrevLineIndex = iPrevLineIndex + iLineEnd;
+    sRemainingContent = sRemainingContent.substring(iPrevLineIndex).trim();
+  }
+
+  aLines.push(sRemainingContent.substring(iPrevLineIndex, iLineEnd));
+
+  return aLines;
+}
+
 function typeParagraph(eExisting) {
   // Create canvas element that we will use to re-render the content off the existing element.
   var eCanvas = document.createElement("canvas");
@@ -209,9 +234,6 @@ function typeParagraph(eExisting) {
   // Configure our canvas rendering context.
   var ctx = eCanvas.getContext("2d");
   ctx.font = iSize + "px \"Courier New\",monospace";
-
-  // Total linear pixels needed for content:
-  var fWidth = ctx.measureText(eExisting.innerHTML).width;
  
   // Estimate lines.
   var iLines = eExisting.offsetHeight / iSize | 0;
@@ -221,17 +243,7 @@ function typeParagraph(eExisting) {
   var cForeground = parseColor(existingStyle.color);
   var cBackground = parseColor(existingStyle.backgroundColor);
 
-  // var content = eExisting.innerHTML.split(/[ ]+/);
-
-  // var pos = [0, iLineHeight];
-  // for (var i = 0, len = content.length; i < len; i++) {
-  //   pos = typeWord(ctx, content[i], pos);
-  // }
-
-  // console.log("lineHeight:"+iLineHeight)
-  // console.log("iLines: " + iLines);
-  // console.log("canvasHeight: " + eExisting.offsetHeight);
-  // console.log("fontSize:" + iSize);
+  var aLines = buildLines(ctx, eExisting.innerHTML, eExisting.offsetWidth);
 
   // Start pecking away at our virtual typewritter.
   var iVOffset = iLineHeight - iSize;
