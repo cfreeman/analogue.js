@@ -112,10 +112,16 @@ function typeCharacter(ctx, sChar, sNextChar, iHOffset,
     grd.addColorStop(1, colorToS(cBackground));
     ctx.fillStyle = grd;
     ctx.fillRect(iHOffset, iVOffset, iWidth, iHeight);
+  }
 
-    //ctx.fillStyle = "rgb(255,0,0)";
-    //ctx.arc(iHOffset + (iWidth / 2), iVOffset + (iQuarHeight / 2), 2.0, 0, 2*Math.PI);
-    //ctx.fill();
+  // Text with an alpha colour on safari is horribly slow.
+  var isSafari = !!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/);
+  if (isSafari) {
+    ctx.fillStyle = 'rgb('+cForeground[0]+","+cForeground[1]+","
+                          +cForeground[3]+")";                              // use a simplier type bar strike for safari.
+  } else {
+    ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
+                                      iHeight, cForeground, cBackground);   // approximate type bar strike.
   }
 
   // render the character tho the canvas.
