@@ -2,244 +2,58 @@
 <html>
 <head>
 <link href="http://fonts.googleapis.com/css?family=Roboto+Slab:700|Open+Sans:300italic,400,300,600,600italic" rel="stylesheet" type="text/css">
+<style>
+      h1 {
+        padding-top: 0px;
+        margin-top: 0px;
+        padding-bottom: 0px;
+        margin-bottom: 0px;
+        font-size: 30px;
+        
+      }
+
+      h2 {
+        padding-top: 0px;
+        margin-top: 0px;
+        font-size: 12px;
+        
+      }
+
+      p {
+        font-size: 16px;
+        
+      }
+
+      p.copy a:link, p.copy a:visited {color: rgb(0, 0, 0);}
+
+      a:link, a:visited {
+        font-weight: bold;
+        color: rgb(0, 0, 0);
+      }
+
+      a:hover, a:active {
+        font-weight: bold;
+        color: rgb(186, 8, 16);
+      }
+      </style>
+
 </head>
-<body style="background-color:rgb(249,249,249);">
+<body style="background-color:rgb(240,240,240);">
 
-<p style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif'">Dear Clinton,</p>
+<h1 class="analogue">PORTRAIT</h1>
+<h2 class="analogue">2014 - Subject<h2>
 
-<p style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif'">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
+<p class="analogue">Van Neistat is a New York artist and filmmaker, who spent several years working as Tom Sachs' assistant. During this time Van developed his own cinematographic style based on bricolage and revealing the production scars of film making. An ethos that brings a handmade, analogue wobble to the hard edges of modern computer generated film.<p>
 
-<p style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif'">Servidor de usted,</p>
+<p class="analogue">Inspired by computer game characters from the eighties, this portrait by Elsa Hansen features an 8-bit rendition of Van in cross stitch embroidery.</p>
 
-<h2>--van</h2>
-
-<p>some dummy untyped content -- style="background-color:rgb(0,0,0);color:rgb(255,255,255);"</p>
-
-<hr>
-
-<p class="analogue">Dear Clinton,</p>
-
-<p class="analogue" style="font-size:16px;font-family: 'open sans',Helvetica,'sans serif';border: solid 1px;">Thank you for the lovely post.  Here is a copy of the neistat brothers HBO show on DVD.  It originally aired in the summer of 2010.</p>
-
-<p class="analogue">Servidor de usted,</p>
-
-<h2 class="analogue">--van</h2>
-
-<script>
-"use strict"
-
-/**
- * Copyright (c) Clinton Freeman 2015
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
-// TODO: Render random correction tape behind some sections of the text.
-// TODO: Margins are not being copied correctly in firefox developer edition. 
-
-var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
-
-function rand(iStart, iEnd) {
-  return Math.floor((Math.random() * iEnd) + iStart) | 0;
-}
-
-function randF(fStart, fEnd) {
-  return (Math.random() * fEnd) + fStart;
-}
-
-function parseColor(sColor) {
-  var result = sColor.match(/\d+/g).map(function(sValue) {
-    return parseInt(sValue);
-  });
-
-  // Make sure the color is rgba.
-  if (result.length < 4) {
-    var iSize = 4 - result.length;
-    while(iSize--) {result.push(1)}
-  }
-
-  return result;
-}
-
-function randAlphaC(cColor, fStart, fEnd) {
-  var result = cColor.slice();
-  result[3] = randF(fStart, fEnd);
-
-  return result;
-}
-
-function colorToS(cColor) {
-  return "rgba("+cColor[0]+","+cColor[1]+","+cColor[2]+","+cColor[3]+")";
-}
-
-function chance(iProbability) {
-  if (rand(0, 100) >= (100 - iProbability)) {
-    return true;
-  }
-
-  return false;
-}
-
-function generateInkStrike(ctx, iHOffset, iWidth,
-                           iHeight, cForeground, cBackground) {
-  var hLower = (iHeight * 0.7) | 0;
-  var hUpper = iHeight;
-
-  var wLower = iHOffset;
-  var wUpper = iWidth;
-
-  var hGradient = rand(hLower, hUpper);
-  var wGradient = rand(wLower, wUpper);
-
-  var res = ctx.createLinearGradient(iHOffset, 0, wGradient, hGradient);
-  res.addColorStop(0,colorToS(cForeground));
-
-  var cFade = randAlphaC(cForeground, 0.2, 0.6);
-  res.addColorStop(1,colorToS(cFade));
-  return res;
-}
-
-function typeCharacter(ctx, sChar, sNextChar, iHOffset,
-                       iVOffset, iHeight, iLineHeight, iElementWidth,
-                       cForeground, cBackground) {
-  var iWidth = ctx.measureText(sChar).width | 0;
-  var iHalfHeight = (iLineHeight / 2) | 0;
-
-  // render transposition typographical errors.
-  if (sChar != " " && sNextChar && chance(2)) {
-    var cTypo = randAlphaC(cForeground, 0.5, 0.7);
-    ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
-                      iHeight, cTypo, cBackground);                       // approximate type bar strike.
-    ctx.fillText(sNextChar, iHOffset, iWidth+iVOffset+rand(0,2));
-  }
-
-  // render smudges / deepened bleed for characters with enclosing strokes.
-  if (smudge.indexOf(sChar.toLowerCase()) != -1 && chance(10)) {
-    var grd = ctx.createRadialGradient(iHOffset+rand(iWidth/3,iWidth/2), iHalfHeight, 1,
-                       iHOffset+rand(iWidth/3,iWidth/2), iHalfHeight, iWidth/2+1);
-
-    grd.addColorStop(0, colorToS(randAlphaC(cForeground, 0.0, 0.6)));
-    grd.addColorStop(1, colorToS(cBackground));
-    ctx.fillStyle = grd;
-    ctx.fillRect(iHOffset, 0, iWidth, iHeight);
-  }
-
-  // render the character tho the canvas.
-  ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
-                                    iHeight, cForeground, cBackground);   // approximate type bar strike.
-  ctx.fillText(sChar, iHOffset, iWidth+iVOffset+rand(0,2));               // render foundation character.
-  ctx.fillText(sChar, iHOffset+rand(0, 1), iWidth+iVOffset+rand(0,2));    // bleed character onto the page.
-
-  return iHOffset + iWidth;
-}
-
-function typeLine(ctx, sLine, iVOffset, iSize, iLineHeight, iElementWidth, cForeground, cBackground) {
-  var iHOffset = 0;
-
-  for(var i = 0, len = sLine.length; i < len; i++) {
-    iHOffset = typeCharacter(ctx, sLine[i], sLine[i+1], iHOffset, iVOffset,
-                             iSize, iLineHeight, iElementWidth, cForeground,
-                             cBackground);
-  }
-
-  return (iVOffset + iLineHeight);
-}
-
-function buildLines(ctx, sContent, iMaxWidth) {
-  var aLines = new Array();
-
-  // Estimte number of characters that can fit on a line.
-  var iCharWidth = Math.ceil(ctx.measureText(sContent[0]).width) | 0;
-  var iMaxLineLength = Math.floor(iMaxWidth / iCharWidth) | 0;
-
-  var iLineEnd = sContent.length;
-  var sRemainingContent = sContent;
-
-  // Break the content into lines, making sure we don't split words.
-  while (sRemainingContent.length > iMaxLineLength) {
-    var iCurrentLineLength = Math.min(sRemainingContent.length, iMaxLineLength);
-    iLineEnd = sRemainingContent.substring(0, iCurrentLineLength).lastIndexOf(" ");
-    aLines.push(sRemainingContent.substring(0, iLineEnd));    
-    sRemainingContent = sRemainingContent.substring(iLineEnd).trim();
-  }
-
-  aLines.push(sRemainingContent.substring(0, iLineEnd));
-  console.log(aLines);
-
-  return aLines;
-}
-
-function typeParagraph(eExisting) {
-  // Create canvas element that we will use to re-render the content off the existing element.
-  var eTmpCanvas = document.createElement("canvas");
-  var existingStyle = eExisting.currentStyle || window.getComputedStyle(eExisting);
-
-  // Model the size of the type off the existing element.
-  var iSize = parseInt(existingStyle.getPropertyValue('font-size'));
-
-  // Figure out height of canvas:
-  eTmpCanvas.setAttribute("width", eExisting.offsetWidth);
-  eTmpCanvas.setAttribute("height", eExisting.offsetHeight);
-  var ctx = eTmpCanvas.getContext("2d");
-  ctx.font = iSize + "px \"Courier New\",monospace";
-
-  var aLines = buildLines(ctx, eExisting.innerHTML, eExisting.offsetWidth);
-  var iLineHeight = iSize + (iSize * 0.4) | 0;
-
-  // Create canvas for typewritter content.
-  var eCanvas = document.createElement("canvas");
-  eCanvas.setAttribute("width", eExisting.offsetWidth);
-  eCanvas.setAttribute("height", aLines.length * iLineHeight);
-
-  // Model the width and the height of the canvas off the existing element.
-  var iElementWidth = eExisting.offsetWidth;
-
-  // Copy the basic display settings across.
-  eCanvas.style.border = existingStyle.border;
-  eCanvas.style.display = existingStyle.display;
-  eCanvas.style.margin = existingStyle.margin;
-  eCanvas.style.padding = existingStyle.padding;
-  //eCanvas.innerHTML = 'Your browser does not support the HTML5 canvas tag.';
-
-  // Configure our canvas rendering context.
-  var ctx = eCanvas.getContext("2d");
-  ctx.font = iSize + "px \"Courier New\",monospace";
- 
-  var cForeground = parseColor(existingStyle.color);
-  var cBackground = parseColor(existingStyle.backgroundColor);
-
-  // Start pecking away at our virtual typewritter.
-  var iVOffset = iLineHeight - iSize;
-  var iHOffset = 0
-
-  for (var i = 0, len = aLines.length; i < len; i++) {
-    iVOffset = typeLine(ctx, aLines[i], iVOffset, iSize,
-                        iLineHeight, iElementWidth, cForeground, cBackground);
-  }
-
-  // Replace the original content with our typewritten content.
-  eExisting.parentNode.insertBefore(eCanvas, eExisting);
-  eExisting.style.display = 'none';
-}
-
-// For each tag marked with the analogue class -- replace the content with a canvas typeset with analogue.
-var aTypingList = document.querySelectorAll(".analogue");
-for (var i = 0, len = aTypingList.length; i < len; i++) {
-  typeParagraph(aTypingList[i])
-}
+<a style="font-family:'Courier New',monospace;" href="https://vimeo.com/132851829">[Watch]</a>
+<script type="text/javascript">  
+  (function() {
+   var ana = document.createElement('script'); ana.type = 'text/javascript'; ana.async = true;
+       ana.src = 'analogue.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ana);
+  })();
 </script>
 
 </body>
