@@ -2,7 +2,7 @@
 Analogue.js
 ===========
 
-A canvas based mechanical typewriter simulation for HTML. For more details, see this post and example.html.
+A canvas based mechanical typewriter simulation for HTML. For more details, see [this post](http://reprage.com/post/analoguejs) and example.html.
 
 ## License (MIT)
 
