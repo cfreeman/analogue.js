@@ -22,7 +22,8 @@
 // TODO: Render random correction tape behind some sections of the text.
 // TODO: Margins are not being copied correctly in firefox developer edition. 
 
-var smudge = ["q", "r", "o", "p", "a", "d", "b", "4", "6", "8", "9", "0", "@", "%", "&"];
+var smudgeChar = "qropadb46890@%&";
+var offsetChar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 function rand(iStart, iEnd) {
   return Math.floor((Math.random() * iEnd) + iStart) | 0;
@@ -69,10 +70,10 @@ function chance(iProbability) {
   return false;
 }
 
-function generateInkStrike(ctx, iHOffset, iWidth,
+function generateInkStrike(ctx, iHOffset, iVOffset, iWidth,
                            iHeight, cForeground, cBackground) {
-  var hLower = (iHeight * 0.7) | 0;
-  var hUpper = iHeight;
+  var hLower = (iHeight * 0.4) | 0;
+  var hUpper = (iHeight * 0.8) | 0;
 
   var wLower = iHOffset;
   var wUpper = iWidth;
@@ -80,17 +81,19 @@ function generateInkStrike(ctx, iHOffset, iWidth,
   var hGradient = rand(hLower, hUpper);
   var wGradient = rand(wLower, wUpper);
 
-  var res = ctx.createLinearGradient(iHOffset, 0, wGradient, hGradient);
+  //console.log(iHOffset+","+iVOffset+","+wGradient+","+hGradient);
+
+  var res = ctx.createLinearGradient(iHOffset, iVOffset, wGradient, iVOffset+hGradient);
   res.addColorStop(0,colorToS(cForeground));
 
-  var cFade = randAlphaC(cForeground, 0.35, 0.6);
+  var cFade = randAlphaC(cForeground, 0.15, 0.3);
   res.addColorStop(1,colorToS(cFade));
   return res;
 }
 
 function typeCharacter(ctx, sChar, sNextChar, iHOffset,
                        iVOffset, iHeight, iLineHeight, iElementWidth,
-                       cForeground, cBackground) {
+                       cForeground, cBackground, sOffsets) {
   var iWidth = ctx.measureText(sChar).width | 0;
   var iHalfHeight = (iLineHeight / 2) | 0;
   var iQuarHeight = (iHalfHeight / 2);
@@ -98,13 +101,13 @@ function typeCharacter(ctx, sChar, sNextChar, iHOffset,
   // render transposition typographical errors.
   if (sChar != " " && sNextChar && chance(2)) {
     var cTypo = randAlphaC(cForeground, 0.1, 0.35);
-    ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
+    ctx.fillStyle = generateInkStrike(ctx, iHOffset, iVOffset, iWidth,
                       iHeight, cTypo, cBackground);                       // approximate type bar strike.
     ctx.fillText(sNextChar, iHOffset, iWidth+iVOffset+rand(0,2));
   }
 
   // render smudges / deepened bleed for characters with enclosing strokes.
-  if (smudge.indexOf(sChar.toLowerCase()) != -1 && chance(10)) {
+  if (smudgeChar.indexOf(sChar.toLowerCase()) != -1 && chance(10)) {
     var grd = ctx.createRadialGradient(iHOffset+rand(iWidth/3, iWidth/2), iVOffset+iQuarHeight, 1,
                                        iHOffset+rand(iWidth/3, iWidth/2), iVOffset+iQuarHeight, iWidth/2+1);
 
@@ -120,20 +123,29 @@ function typeCharacter(ctx, sChar, sNextChar, iHOffset,
     ctx.fillStyle = 'rgb('+cForeground[0]+","+cForeground[1]+","
                           +cForeground[3]+")";                              // use a simplier type bar strike for safari.
   } else {
-    ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
+    ctx.fillStyle = generateInkStrike(ctx, iHOffset, iVOffset, iWidth,
                                       iHeight, cForeground, cBackground);   // approximate type bar strike.
   }
 
+  var iOffsetSize = Math.min(2, (iHeight * 0.0625) | 0);
+
+  var iStrikeOffset = 0;
+  if (sOffsets.indexOf(sChar) != -1) {
+    iStrikeOffset = iOffsetSize;
+  }
+
   // render the character tho the canvas.
-  ctx.fillStyle = generateInkStrike(ctx, iHOffset, iWidth,
+  ctx.fillStyle = generateInkStrike(ctx, iHOffset, iVOffset, iWidth,
                                     iHeight, cForeground, cBackground);   // approximate type bar strike.
-  ctx.fillText(sChar, iHOffset, iWidth+iVOffset+rand(0,2));               // render foundation character.
-  ctx.fillText(sChar, iHOffset+rand(0, 1), iWidth+iVOffset+rand(0,2));    // bleed character onto the page.
+  ctx.fillText(sChar, iHOffset+iStrikeOffset,
+                      iWidth+iVOffset+iStrikeOffset); // render foundation character.
+  ctx.fillText(sChar, iHOffset+iStrikeOffset+rand(0,iOffsetSize),
+                      iWidth+iVOffset+rand(0,1+iOffsetSize)+iStrikeOffset);    // bleed character onto the page.
 
   return iHOffset + iWidth;
 }
 
-function typeLine(ctx, sLine, iVOffset, iSize, iLineHeight, iElementWidth, cForeground, cBackground) {
+function typeLine(ctx, sLine, iVOffset, iSize, iLineHeight, iElementWidth, cForeground, cBackground, sOffsets) {
   var iHOffset = 0;
 
   // render some correction tape.
@@ -168,7 +180,7 @@ function typeLine(ctx, sLine, iVOffset, iSize, iLineHeight, iElementWidth, cFore
   for(var i = 0, len = sLine.length; i < len; i++) {
     iHOffset = typeCharacter(ctx, sLine[i], sLine[i+1], iHOffset, iVOffset,
                              iSize, iLineHeight, iElementWidth, cForeground,
-                             cBackground);
+                             cBackground, sOffsets);
   }
 
   return (iVOffset + iLineHeight);
@@ -192,12 +204,12 @@ function buildLines(ctx, sContent, iMaxWidth) {
     sRemainingContent = sRemainingContent.substring(iLineEnd).trim();
   }
 
-  aLines.push(sRemainingContent.substring(0, iLineEnd));
+  aLines.push(sRemainingContent.substring(0, sRemainingContent.length));
 
   return aLines;
 }
 
-function typeParagraph(eExisting) {
+function typeParagraph(eExisting, sOffsets) {
   // Create canvas element that we will use to re-render the content off the existing element.
   var eTmpCanvas = document.createElement("canvas");
   var existingStyle = eExisting.currentStyle || window.getComputedStyle(eExisting);
@@ -242,7 +254,8 @@ function typeParagraph(eExisting) {
 
   for (var i = 0, len = aLines.length; i < len; i++) {
     iVOffset = typeLine(ctx, aLines[i], iVOffset, iSize,
-                        iLineHeight, iElementWidth, cForeground, cBackground);
+                        iLineHeight, iElementWidth, cForeground, cBackground,
+                        sOffsets);
   }
 
   // Replace the original content with our typewritten content.
@@ -250,8 +263,14 @@ function typeParagraph(eExisting) {
   eExisting.style.display = 'none';
 }
 
+// Build a list of characters that will be offset (mechnical misalignments in the typewriter).
+var sOffsets = "";
+for (var i = 0, len = rand(2,8); i < len; i++) {
+  sOffsets += offsetChar.charAt(rand(0, offsetChar.length));
+}
+
 // For each tag marked with the analogue class -- replace the content with a canvas typeset with analogue.
 var aTypingList = document.querySelectorAll(".analogue");
 for (var i = 0, len = aTypingList.length; i < len; i++) {
-  typeParagraph(aTypingList[i])
+  typeParagraph(aTypingList[i], sOffsets);
 }
