@@ -20,7 +20,7 @@
  */
 
 // TODO: Render random correction tape behind some sections of the text.
-// TODO: Margins are not being copied correctly in firefox developer edition. 
+// TODO: Margins are not being copied correctly in firefox developer edition.
 
 var smudgeChar = "qropadb46890@%&";
 var offsetChar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -80,8 +80,6 @@ function generateInkStrike(ctx, iHOffset, iVOffset, iWidth,
 
   var hGradient = rand(hLower, hUpper);
   var wGradient = rand(wLower, wUpper);
-
-  //console.log(iHOffset+","+iVOffset+","+wGradient+","+hGradient);
 
   var res = ctx.createLinearGradient(iHOffset, iVOffset, wGradient, iVOffset+hGradient);
   res.addColorStop(0,colorToS(cForeground));
@@ -149,9 +147,9 @@ function typeLine(ctx, sLine, iVOffset, iSize, iLineHeight, iElementWidth, cFore
   var iHOffset = 0;
 
   // render some correction tape.
-  // if (chance(100)) {
+  // if (chance(20)) {
   //   var oldFill = ctx.fillStyle;
-    
+
   //   var iOffset = rand(0, sLine.length - 1);
   //   var iWidth = Math.min((sLine.length - iOffset),rand(1, 10));
 
@@ -160,17 +158,15 @@ function typeLine(ctx, sLine, iVOffset, iSize, iLineHeight, iElementWidth, cFore
   //   var iCharWidth = Math.ceil(ctx.measureText(sLine[0]).width) | 0;
   //   var iX1 = (iOffset * iCharWidth);// + rand(0, iCharWidth);
   //   var iX2 = iX1 + (iWidth * iCharWidth);// + rand(0, iCharWidth);
-  //   var iY1 = iVOffset - (iLineHeight / 3);
-  //   var iY2 = iVOffset + iLineHeight;
-
-  //   console.log("["+iX1+","+iY1+"] ["+iX2+","+iY2+"]");
+  //   var iY1 = iVOffset - (iLineHeight / 3.5) + rand(0, iLineHeight / 3.5);
+  //   var iY2 = iVOffset + iLineHeight / 1.5;
 
   //   ctx.fillStyle="rgb(255, 255, 255)"
   //   ctx.beginPath();
   //   ctx.moveTo(iX1, iY1);
-  //   ctx.lineTo(iX1, iY2);
+  //   ctx.lineTo(iX1 + rand(0, 3), iY2);
   //   ctx.lineTo(iX2, iY2);
-  //   ctx.lineTo(iX2, iY1);
+  //   ctx.lineTo(iX2 + rand(0, 3), iY1 + rand(0, 3));
   //   ctx.closePath();
   //   ctx.fill();
 
@@ -190,17 +186,25 @@ function buildLines(ctx, sContent, iMaxWidth) {
   var aLines = new Array();
 
   // Estimte number of characters that can fit on a line.
-  var iCharWidth = Math.ceil(ctx.measureText(sContent[0]).width) | 0;
-  var iMaxLineLength = Math.floor(iMaxWidth / iCharWidth) | 0;
-
+  var fCharWidth = ctx.measureText(sContent[0]).width;
+  var iMaxLineLength = Math.floor(iMaxWidth / fCharWidth) | 0;
   var iLineEnd = sContent.length;
   var sRemainingContent = sContent;
 
   // Break the content into lines, making sure we don't split words.
   while (sRemainingContent.length > iMaxLineLength) {
     var iCurrentLineLength = Math.min(sRemainingContent.length, iMaxLineLength);
-    iLineEnd = sRemainingContent.substring(0, iCurrentLineLength).lastIndexOf(" ");
-    aLines.push(sRemainingContent.substring(0, iLineEnd));    
+
+    // If the last character is a space, we landed on the perfect spot to split the line.
+    // otherwise we are in the middle of a word, and need to look backwards for the best
+    // place to split the line.
+    if (sRemainingContent.charAt(iCurrentLineLength) == " ") {
+      iLineEnd = iCurrentLineLength;
+    } else {
+      iLineEnd = sRemainingContent.substring(0, iCurrentLineLength).lastIndexOf(" ");
+    }
+
+    aLines.push(sRemainingContent.substring(0, iLineEnd));
     sRemainingContent = sRemainingContent.substring(iLineEnd).trim();
   }
 
@@ -244,7 +248,7 @@ function typeParagraph(eExisting, sOffsets) {
   // Configure our canvas rendering context.
   var ctx = eCanvas.getContext("2d");
   ctx.font = iSize + "px \"Courier New\",monospace";
- 
+
   var cForeground = parseColor(existingStyle.color);
   var cBackground = parseColor(existingStyle.backgroundColor);
 
